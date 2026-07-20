@@ -1,0 +1,29 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "dira-clinicops",
+          "appId": "1:1096420113105:android:422b339beab4397e5ce3f0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "dira-clinicops",
+          "configurations": {
+            "android": "1:1096420113105:android:422b339beab4397e5ce3f0",
+            "ios": "1:1096420113105:ios:4fd5ee275211b00a5ce3f0",
+            "macos": "1:1096420113105:ios:4fd5ee275211b00a5ce3f0",
+            "web": "1:1096420113105:web:5d0663afd2d929165ce3f0",
+            "windows": "1:1096420113105:web:1732dfa51e129d375ce3f0"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "(firestore.rules)",
+    "indexes": "firestore.indexes.json"
+  }
+}

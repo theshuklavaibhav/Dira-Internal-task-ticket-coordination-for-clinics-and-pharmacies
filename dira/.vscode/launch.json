@@ -1,0 +1,16 @@
+{
+     "version": "0.2.0",
+     "configurations": [
+       {
+         "name": "Dira (Dev)",
+         "request": "launch",
+         "type": "dart",
+         "program": "lib/main.dart",
+         "args": [
+           "--dart-define=EMAILJS_SERVICE_ID=service_r5pvm0r",
+           "--dart-define=EMAILJS_TEMPLATE_ID=template_ezxs9ez",
+           "--dart-define=EMAILJS_PUBLIC_KEY=_fJu2GVUvb8Ix-LgU"
+         ]
+       }
+     ]
+   }

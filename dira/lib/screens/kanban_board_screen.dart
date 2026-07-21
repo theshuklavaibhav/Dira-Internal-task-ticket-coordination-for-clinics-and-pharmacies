@@ -100,16 +100,28 @@ class _KanbanColumn extends StatelessWidget {
     required this.onTicketTap,
   });
 
-  Color _headerColor() {
-    switch (status) {
-      case TicketStatus.open:
-        return Colors.blueAccent;
-      case TicketStatus.inProgress:
-        return Colors.orangeAccent;
-      case TicketStatus.done:
-        return Colors.greenAccent.shade400;
-    }
+  // Color _headerColor() {
+  //   switch (status) {
+  //     case TicketStatus.open:
+  //       return Colors.blueAccent;
+  //     case TicketStatus.inProgress:
+  //       return Colors.orangeAccent;
+  //     case TicketStatus.done:
+  //       return Colors.greenAccent.shade400;
+  //   }
+  // }
+
+  Color _headerColor(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  switch (status) {
+    case TicketStatus.open:
+      return scheme.tertiary;
+    case TicketStatus.inProgress:
+      return scheme.secondary;
+    case TicketStatus.done:
+      return scheme.primary;
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +138,12 @@ class _KanbanColumn extends StatelessWidget {
           width: 300,
           margin: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
-            color: isHovering
-                ? colorScheme.primary.withOpacity(0.08)
-                : colorScheme.surfaceContainerHighest.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(14),
-            border: isHovering ? Border.all(color: colorScheme.primary, width: 1.5) : null,
+            color: isHovering ? colorScheme.primaryContainer.withOpacity(0.1) : colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isHovering ? colorScheme.primary : colorScheme.outlineVariant.withOpacity(0.3),
+              width: isHovering ? 1.5 : 1,
+            ),
           ),
           padding: const EdgeInsets.all(10),
           child: Column(
@@ -138,7 +151,7 @@ class _KanbanColumn extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(width: 8, height: 8, decoration: BoxDecoration(color: _headerColor(), shape: BoxShape.circle)),
+                  Container(width: 8, height: 8, decoration: BoxDecoration(color: _headerColor(context), shape: BoxShape.circle)),
                   const SizedBox(width: 8),
                   Text(status.label, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
                   const SizedBox(width: 6),

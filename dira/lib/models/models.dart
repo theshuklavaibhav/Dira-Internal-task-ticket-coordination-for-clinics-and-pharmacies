@@ -85,22 +85,56 @@ class ClinicMember {
   Map<String, dynamic> toJson() => {'name': name, 'email': email, 'role': role.name, 'status': 'active'};
 }
 
+// class ClinicInvite {
+//   final String id;
+//   final String email;
+//   final StaffRole role;
+//   final String status;
+
+//   ClinicInvite({required this.id, required this.email, required this.role, this.status = 'pending'});
+
+//   factory ClinicInvite.fromFirestore(Map<String, dynamic> data, String id) => ClinicInvite(
+//         id: id,
+//         email: data['email'] as String? ?? '',
+//         role: StaffRole.values.firstWhere((r) => r.name == data['role'], orElse: () => StaffRole.reception),
+//         status: data['status'] as String? ?? 'pending',
+//       );
+
+//   Map<String, dynamic> toJson() => {'email': email, 'role': role.name, 'status': status};
+// }
+
 class ClinicInvite {
   final String id;
-  final String email;
+  final String contact; // email address or phone number
+  final String method; // 'email' | 'phone'
   final StaffRole role;
   final String status;
+  final DateTime createdAt;
 
-  ClinicInvite({required this.id, required this.email, required this.role, this.status = 'pending'});
+  ClinicInvite({
+    required this.id,
+    required this.contact,
+    required this.method,
+    required this.role,
+    this.status = 'pending',
+    required this.createdAt,
+  });
 
   factory ClinicInvite.fromFirestore(Map<String, dynamic> data, String id) => ClinicInvite(
         id: id,
-        email: data['email'] as String? ?? '',
+        contact: data['contact'] as String? ?? data['email'] as String? ?? '',
+        method: data['method'] as String? ?? 'email',
         role: StaffRole.values.firstWhere((r) => r.name == data['role'], orElse: () => StaffRole.reception),
         status: data['status'] as String? ?? 'pending',
+        createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       );
 
-  Map<String, dynamic> toJson() => {'email': email, 'role': role.name, 'status': status};
+  Map<String, dynamic> toJson() => {
+        'contact': contact,
+        'method': method,
+        'role': role.name,
+        'status': status,
+      };
 }
 
 class Ticket {

@@ -46,59 +46,136 @@ class ClinicService {
     });
   }
 
-    static Future<void> inviteStaff(String clinicId, String email, StaffRole role) async {
-    final inviter = FirebaseAuth.instance.currentUser!;
+  //   static Future<void> inviteStaff(String clinicId, String email, StaffRole role) async {
+  //   final inviter = FirebaseAuth.instance.currentUser!;
 
-    await _db.collection('clinics').doc(clinicId).collection('invites').add({
-      'email': email.trim().toLowerCase(),
-      'role': role.name,
-      'status': 'pending',
-      'invitedBy': inviter.uid,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+  //   await _db.collection('clinics').doc(clinicId).collection('invites').add({
+  //     'email': email.trim().toLowerCase(),
+  //     'role': role.name,
+  //     'status': 'pending',
+  //     'invitedBy': inviter.uid,
+  //     'createdAt': FieldValue.serverTimestamp(),
+  //   });
 
-    final clinicDoc = await _db.collection('clinics').doc(clinicId).get();
+  //   final clinicDoc = await _db.collection('clinics').doc(clinicId).get();
 
-    try {
-      await EmailService.sendInviteEmail(
-        toEmail: email.trim(),
-        clinicName: clinicDoc.data()?['name'] ?? 'your clinic',
-        role: role.label,
-        inviterName: inviter.displayName ?? inviter.email ?? 'A colleague',
-      );
-    } catch (e) {
-      // Don't fail the whole invite if email delivery has an issue —
-      // the invite record still exists and will still auto-accept on signup.
-      // ignore: avoid_print
-      print('Invite email failed (invite still saved): $e');
+  //   try {
+  //     await EmailService.sendInviteEmail(
+  //       toEmail: email.trim(),
+  //       clinicName: clinicDoc.data()?['name'] ?? 'your clinic',
+  //       role: role.label,
+  //       inviterName: inviter.displayName ?? inviter.email ?? 'A colleague',
+  //     );
+  //   } catch (e) {
+  //     // Don't fail the whole invite if email delivery has an issue —
+  //     // the invite record still exists and will still auto-accept on signup.
+  //     // ignore: avoid_print
+  //     print('Invite email failed (invite still saved): $e');
+  //   }
+  // }
+
+    static Future<void> inviteStaff(
+      String clinicId,
+      String contact,
+      StaffRole role, {
+      String method = 'email',
+    }) async {
+      final inviter = FirebaseAuth.instance.currentUser!;
+      final normalizedContact = method == 'email' ? contact.trim().toLowerCase() : contact.trim();
+
+      await _db.collection('clinics').doc(clinicId).collection('invites').add({
+        'contact': normalizedContact,
+        'method': method,
+        'role': role.name,
+        'status': 'pending',
+        'invitedBy': inviter.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (method == 'email') {
+        final clinicDoc = await _db.collection('clinics').doc(clinicId).get();
+        try {
+          await EmailService.sendInviteEmail(
+            toEmail: normalizedContact,
+            clinicName: clinicDoc.data()?['name'] ?? 'your clinic',
+            role: role.label,
+            inviterName: inviter.displayName ?? inviter.email ?? 'A colleague',
+          );
+        } catch (e) {
+          // ignore: avoid_print
+          print('Invite email failed (invite still saved): $e');
+        }
+      }
+      // Phone invites: no automated SMS sender wired up yet (would need a paid
+      // SMS API like Twilio/MSG91). The invite record still auto-accepts once
+      // that phone number signs in — just tell them manually to sign up for now.
     }
-  }
 
-  static Future<void> acceptPendingInvites() async {
+  // static Future<void> acceptPendingInvites() async {
+  //   final user = FirebaseAuth.instance.currentUser!;
+  //   final email = user.email?.toLowerCase();
+  //   if (email == null) return;
+
+  //   final invites = await _db
+  //       .collectionGroup('invites')
+  //       .where('email', isEqualTo: email)
+  //       .where('status', isEqualTo: 'pending')
+  //       .get();
+
+  //   for (final inviteDoc in invites.docs) {
+  //     final clinicRef = inviteDoc.reference.parent.parent!;
+  //     final role = inviteDoc.data()['role'] as String;
+
+  //     await clinicRef.collection('members').doc(user.uid).set({
+  //       'name': user.displayName ?? email,
+  //       'email': email,
+  //       'role': role,
+  //       'status': 'active',
+  //     });
+  //     await inviteDoc.reference.update({'status': 'accepted'});
+  //     await _db.collection('users').doc(user.uid).set({
+  //       'clinicIds': FieldValue.arrayUnion([clinicRef.id]),
+  //     }, SetOptions(merge: true));
+  //   }
+  // }
+  
+    static Future<void> acceptPendingInvites() async {
     final user = FirebaseAuth.instance.currentUser!;
     final email = user.email?.toLowerCase();
-    if (email == null) return;
+    final phone = user.phoneNumber;
 
-    final invites = await _db
-        .collectionGroup('invites')
-        .where('email', isEqualTo: email)
-        .where('status', isEqualTo: 'pending')
-        .get();
+    final queries = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
+    if (email != null) {
+      queries.add(_db
+          .collectionGroup('invites')
+          .where('contact', isEqualTo: email)
+          .where('status', isEqualTo: 'pending')
+          .get());
+    }
+    if (phone != null) {
+      queries.add(_db
+          .collectionGroup('invites')
+          .where('contact', isEqualTo: phone)
+          .where('status', isEqualTo: 'pending')
+          .get());
+    }
 
-    for (final inviteDoc in invites.docs) {
-      final clinicRef = inviteDoc.reference.parent.parent!;
-      final role = inviteDoc.data()['role'] as String;
-
-      await clinicRef.collection('members').doc(user.uid).set({
-        'name': user.displayName ?? email,
-        'email': email,
-        'role': role,
-        'status': 'active',
-      });
-      await inviteDoc.reference.update({'status': 'accepted'});
-      await _db.collection('users').doc(user.uid).set({
-        'clinicIds': FieldValue.arrayUnion([clinicRef.id]),
-      }, SetOptions(merge: true));
+    final results = await Future.wait(queries);
+    for (final snapshot in results) {
+      for (final inviteDoc in snapshot.docs) {
+        final clinicRef = inviteDoc.reference.parent.parent!;
+        final role = inviteDoc.data()['role'] as String;
+        await clinicRef.collection('members').doc(user.uid).set({
+          'name': user.displayName ?? email ?? phone,
+          'email': email ?? '',
+          'role': role,
+          'status': 'active',
+        });
+        await inviteDoc.reference.update({'status': 'accepted'});
+        await _db.collection('users').doc(user.uid).set({
+          'clinicIds': FieldValue.arrayUnion([clinicRef.id]),
+        }, SetOptions(merge: true));
+      }
     }
   }
 

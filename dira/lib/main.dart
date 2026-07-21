@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'services/clinic_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/clinic_list_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,13 +23,12 @@ class Dira extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ClinicOps',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: primaryColor, secondary: secondaryColor),
-      ),
-      home: const AuthGate(),
+        debugShowCheckedModeBanner: false,
+        title: 'Dira',
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
+        home: const AuthGate(),
     );
   }
 }

@@ -116,7 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: scheme.primaryContainer.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(Icons.monitor_heart_outlined, size: 30, color: scheme.primary),
+                  child: Image.asset(
+                    'assets/icon/app-icon.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text('Welcome to Dira', style: textTheme.headlineSmall, textAlign: TextAlign.center),

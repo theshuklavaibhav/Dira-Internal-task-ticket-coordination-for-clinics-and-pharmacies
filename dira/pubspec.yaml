@@ -51,6 +51,9 @@ flutter_launcher_icons:
   image_path: "assets/icon/app_icon.png" # Updated to standard underscore naming
   min_sdk_android: 21
   remove_alpha_ios: true
+
+  adaptive_icon_background: "#FFFFFF" # or your brand color hex code
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -68,6 +71,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  # Registering the assets directory:
+  assets:
+    - assets/icon/app-icon.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

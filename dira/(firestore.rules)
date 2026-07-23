@@ -1,3 +1,4 @@
+/*
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -24,9 +25,72 @@ service cloud.firestore {
       match /invites/{inviteId} {
         allow read: if request.auth != null;
         allow create: if isAdmin(clinicId);
-        allow update: if request.auth != null && resource.data.email == request.auth.token.email;
+        allow update: if request.auth != null &&
+        (resource.data.contact == request.auth.token.email ||
+        resource.data.contact == request.auth.token.phone_number);
         allow delete: if isAdmin(clinicId);
       }
+      match /tickets/{ticketId} {
+        allow read, create, update, delete: if isMember(clinicId);
+        match /comments/{commentId} {
+          allow read, create: if isMember(clinicId);
+        }
+      }
+
+      match /notices/{noticeId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null;
+        allow delete: if isAdmin(clinicId);
+      }
+    }
+  }
+}
+*/
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isMember(clinicId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid));
+    }
+
+    function isAdmin(clinicId) {
+      return isMember(clinicId) &&
+        get(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Explicit Rule to allow Collection Group Queries across all invites
+    match /{path=**}/invites/{inviteId} {
+      allow read: if request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /clinics/{clinicId} {
+      allow create: if request.auth != null;
+      // Allow reading clinic metadata if the user is a member OR has an active invite
+      allow read: if request.auth != null; 
+      allow update: if isAdmin(clinicId);
+
+      match /members/{memberId} {
+        allow read: if isMember(clinicId);
+        // Allow newly registered staff to create their own member doc during invite acceptance
+        allow create: if request.auth != null && request.auth.uid == memberId;
+        allow update, delete: if isAdmin(clinicId);
+      }
+
+      match /invites/{inviteId} {
+        allow read: if request.auth != null;
+        allow create: if isAdmin(clinicId);
+        allow update: if request.auth != null;
+        allow delete: if isAdmin(clinicId);
+      }
+
       match /tickets/{ticketId} {
         allow read, create, update, delete: if isMember(clinicId);
         match /comments/{commentId} {

@@ -5,6 +5,7 @@ class EmailService {
   static const _serviceId = String.fromEnvironment('EMAILJS_SERVICE_ID');
   static const _templateId = String.fromEnvironment('EMAILJS_TEMPLATE_ID');
   static const _publicKey = String.fromEnvironment('EMAILJS_PUBLIC_KEY');
+  static const _apkUrl = 'https://github.com/theshuklavaibhav/Dira-Internal-task-ticket-coordination-for-clinics-and-pharmacies/releases/download/v1.0.3/app-release.apk';
 
   static Future<void> sendInviteEmail({
     required String toEmail,
@@ -28,6 +29,7 @@ class EmailService {
           'clinic_name': clinicName,
           'role': role,
           'inviter_name': inviterName,
+          'apk_url': _apkUrl,
         },
       }),
     );

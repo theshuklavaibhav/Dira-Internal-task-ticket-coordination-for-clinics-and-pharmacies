@@ -8,9 +8,13 @@ import 'screens/login_screen.dart';
 import 'screens/clinic_list_screen.dart';
 import 'theme/app_theme.dart';
 
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  OneSignal.initialize('a0829472-f917-4c4c-90a2-d2a7c975b423');
+  OneSignal.Notifications.requestPermission(true);
   runApp(const Dira());
 }
 
@@ -59,6 +63,7 @@ class _AuthGateState extends State<AuthGate> {
           _processedUid = user.uid;
           ClinicService.ensureUserDoc();
           ClinicService.acceptPendingInvites();
+          OneSignal.login(user.uid); // links this device to the signed-in user
         }
         return const ClinicListScreen();
       },

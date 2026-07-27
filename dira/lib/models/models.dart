@@ -67,6 +67,24 @@ class Clinic {
       };
 }
 
+// class ClinicMember {
+//   final String uid;
+//   final String name;
+//   final String email;
+//   final StaffRole role;
+
+//   ClinicMember({required this.uid, required this.name, required this.email, required this.role});
+
+//   factory ClinicMember.fromFirestore(Map<String, dynamic> data, String uid) => ClinicMember(
+//         uid: uid,
+//         name: data['name'] as String? ?? '',
+//         email: data['email'] as String? ?? '',
+//         role: StaffRole.values.firstWhere((r) => r.name == data['role'], orElse: () => StaffRole.reception),
+//       );
+
+//   Map<String, dynamic> toJson() => {'name': name, 'email': email, 'role': role.name, 'status': 'active'};
+// }
+
 class ClinicMember {
   final String uid;
   final String name;
@@ -83,6 +101,12 @@ class ClinicMember {
       );
 
   Map<String, dynamic> toJson() => {'name': name, 'email': email, 'role': role.name, 'status': 'active'};
+
+  @override
+  bool operator ==(Object other) => other is ClinicMember && other.uid == uid;
+
+  @override
+  int get hashCode => uid.hashCode;
 }
 
 // class ClinicInvite {

@@ -6,6 +6,8 @@ import '../widgets/ticket_card.dart';
 import '../widgets/create_ticket_sheet.dart';
 import 'invite_staff_screen.dart';
 import 'ticket_detail_screen.dart';
+import '../services/notification_service.dart';
+import 'notifications_screen.dart';
 
 class KanbanBoardScreen extends StatelessWidget {
   final String clinicId;
@@ -29,7 +31,55 @@ class KanbanBoardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(clinicName),
+        // actions: [
+        //   StreamBuilder<ClinicMember?>(
+        //     stream: ClinicService.myMembershipStream(clinicId),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.data?.role != StaffRole.admin) return const SizedBox.shrink();
+        //       return IconButton(
+        //         icon: const Icon(Icons.group_outlined),
+        //         tooltip: 'Staff & Invites',
+        //         onPressed: () => Navigator.push(
+        //           context,
+        //           MaterialPageRoute(builder: (_) => InviteStaffScreen(clinicId: clinicId)),
+        //         ),
+        //       );
+        //     },
+        //   ),
+        // ],
         actions: [
+          StreamBuilder<int>(
+            stream: NotificationService.unreadCount(clinicId),
+            builder: (context, snapshot) {
+              final count = snapshot.data ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: 'Notifications',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => NotificationsScreen(clinicId: clinicId)),
+                    ),
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.error, shape: BoxShape.circle),
+                        child: Text('$count',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           StreamBuilder<ClinicMember?>(
             stream: ClinicService.myMembershipStream(clinicId),
             builder: (context, snapshot) {

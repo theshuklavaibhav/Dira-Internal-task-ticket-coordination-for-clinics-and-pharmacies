@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="Dira"
         android:name="${applicationName}"
@@ -30,6 +31,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.onesignal.NotificationIcon"
+            android:resource="@mipmap/launcher_icon" />
+        <meta-data
+            android:name="com.onesignal.NotificationAccentColor.DEFAULT"
+            android:resource="@color/notification_accent_color" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

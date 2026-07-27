@@ -31,22 +31,6 @@ class KanbanBoardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(clinicName),
-        // actions: [
-        //   StreamBuilder<ClinicMember?>(
-        //     stream: ClinicService.myMembershipStream(clinicId),
-        //     builder: (context, snapshot) {
-        //       if (snapshot.data?.role != StaffRole.admin) return const SizedBox.shrink();
-        //       return IconButton(
-        //         icon: const Icon(Icons.group_outlined),
-        //         tooltip: 'Staff & Invites',
-        //         onPressed: () => Navigator.push(
-        //           context,
-        //           MaterialPageRoute(builder: (_) => InviteStaffScreen(clinicId: clinicId)),
-        //         ),
-        //       );
-        //     },
-        //   ),
-        // ],
         actions: [
           StreamBuilder<int>(
             stream: NotificationService.unreadCount(clinicId),
@@ -150,17 +134,6 @@ class _KanbanColumn extends StatelessWidget {
     required this.onTicketTap,
   });
 
-  // Color _headerColor() {
-  //   switch (status) {
-  //     case TicketStatus.open:
-  //       return Colors.blueAccent;
-  //     case TicketStatus.inProgress:
-  //       return Colors.orangeAccent;
-  //     case TicketStatus.done:
-  //       return Colors.greenAccent.shade400;
-  //   }
-  // }
-
   Color _headerColor(BuildContext context) {
   final scheme = Theme.of(context).colorScheme;
   switch (status) {
@@ -238,6 +211,21 @@ class _KanbanColumn extends StatelessWidget {
                           );
                         },
                       ),
+              ),
+              Row(
+                children: [
+                  Container(width: 8, height: 8, decoration: BoxDecoration(color: _headerColor(context), shape: BoxShape.circle)),
+                  const SizedBox(width: 8),
+                  Text(status.label, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(10)),
+                    child: Text('${tickets.length}', style: Theme.of(context).textTheme.bodySmall),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.more_horiz, size: 18, color: colorScheme.onSurfaceVariant),
+                ],
               ),
             ],
           ),

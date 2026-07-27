@@ -10,6 +10,8 @@ import 'theme/app_theme.dart';
 
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
+import 'screens/main_shell_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -65,7 +67,8 @@ class _AuthGateState extends State<AuthGate> {
           ClinicService.acceptPendingInvites();
           OneSignal.login(user.uid); // links this device to the signed-in user
         }
-        return const ClinicListScreen();
+        // return const ClinicListScreen();
+        return const MainShellScreen();
       },
     );
   }

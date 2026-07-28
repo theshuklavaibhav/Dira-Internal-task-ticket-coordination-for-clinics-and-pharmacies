@@ -25,6 +25,7 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow read: if request.auth != null;
       allow update: if isAdmin(clinicId);
+      allow delete: if isAdmin(clinicId);
 
       match /members/{memberId} {
         allow read: if isMember(clinicId);
@@ -43,6 +44,7 @@ service cloud.firestore {
         allow read, create, update, delete: if isMember(clinicId);
         match /comments/{commentId} {
           allow read, create: if isMember(clinicId);
+          allow delete: if isMember(clinicId);
         }
       }
 
@@ -56,6 +58,7 @@ service cloud.firestore {
       match /notifications/{notifId} {
         allow read, update: if request.auth != null && resource.data.userId == request.auth.uid;
         allow create: if isMember(clinicId);
+        allow delete: if isAdmin(clinicId);
       }
     }
   }

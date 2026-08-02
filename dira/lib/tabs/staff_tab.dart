@@ -4,7 +4,14 @@ import '../../services/clinic_service.dart';
 
 class StaffTab extends StatefulWidget {
   final String clinicId;
-  const StaffTab({super.key, required this.clinicId});
+  final String clinicName;
+  final VoidCallback onClinicDeleted;
+  const StaffTab({
+    super.key,
+    required this.clinicId,
+    required this.clinicName,
+    required this.onClinicDeleted,
+  });
   @override
   State<StaffTab> createState() => _StaffTabState();
 }
@@ -36,6 +43,69 @@ class _StaffTabState extends State<StaffTab> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  Future<void> _confirmDeleteClinic() async {
+    final confirmController = TextEditingController();
+    bool isDeleting = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          final scheme = Theme.of(dialogContext).colorScheme;
+          return AlertDialog(
+            title: const Text('Delete Clinic?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'This permanently deletes "${widget.clinicName}" — all tickets, comments, notices, staff, and invites will be lost for everyone. This cannot be undone.',
+                ),
+                const SizedBox(height: 16),
+                Text('Type the clinic name to confirm:', style: Theme.of(dialogContext).textTheme.bodySmall),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: confirmController,
+                  decoration: InputDecoration(hintText: widget.clinicName),
+                  onChanged: (_) => setDialogState(() {}),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: scheme.error),
+                onPressed: (isDeleting || confirmController.text.trim() != widget.clinicName)
+                    ? null
+                    : () async {
+                        setDialogState(() => isDeleting = true);
+                        try {
+                          await ClinicService.deleteClinic(widget.clinicId);
+                          if (dialogContext.mounted) Navigator.pop(dialogContext);
+                          widget.onClinicDeleted();
+                        } catch (e) {
+                          setDialogState(() => isDeleting = false);
+                          if (!dialogContext.mounted) return;
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(content: Text('Failed to delete: $e'), backgroundColor: scheme.error),
+                          );
+                        }
+                      },
+                child: isDeleting
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                    : const Text('Delete Permanently'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -149,46 +219,79 @@ class _StaffTabState extends State<StaffTab> {
                 ),
               ),
               if (isAdmin) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: scheme.surfaceContainerLowest,
+                    color: scheme.errorContainer.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: scheme.outlineVariant.withOpacity(0.3)),
+                    border: Border.all(color: scheme.error.withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Pending Invites', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 12),
-                      StreamBuilder<List<ClinicInvite>>(
-                        stream: ClinicService.pendingInvitesStream(widget.clinicId),
-                        builder: (context, snapshot) {
-                          final invites = snapshot.data ?? [];
-                          if (invites.isEmpty) {
-                            return Text('No pending invites.', style: Theme.of(context).textTheme.bodyMedium);
-                          }
-                          return Column(
-                            children: invites.map((inv) {
-                              return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: Icon(inv.method == 'email' ? Icons.mail_outline : Icons.phone_iphone_outlined),
-                                title: Text(inv.contact),
-                                subtitle: Text(inv.role.label),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () => ClinicService.cancelInvite(widget.clinicId, inv.id),
-                                ),
-                              );
-                            }).toList(),
-                          );
-                        },
+                      Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: scheme.error, size: 20),
+                          const SizedBox(width: 8),
+                          Text('Danger Zone', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: scheme.error)),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Permanently delete this clinic and all of its data. This cannot be undone.',
+                          style: Theme.of(context).textTheme.bodyMedium),
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.delete_forever, color: scheme.error, size: 18),
+                        label: Text('Delete Clinic', style: TextStyle(color: scheme.error)),
+                        onPressed: _confirmDeleteClinic,
+                        style: OutlinedButton.styleFrom(side: BorderSide(color: scheme.error)),
                       ),
                     ],
                   ),
                 ),
               ],
+              // if (isAdmin) ...[
+              //   const SizedBox(height: 16),
+              //   Container(
+              //     padding: const EdgeInsets.all(20),
+              //     decoration: BoxDecoration(
+              //       color: scheme.surfaceContainerLowest,
+              //       borderRadius: BorderRadius.circular(16),
+              //       border: Border.all(color: scheme.outlineVariant.withOpacity(0.3)),
+              //     ),
+              //     child: Column(
+              //       crossAxisAlignment: CrossAxisAlignment.stretch,
+              //       children: [
+              //         Text('Pending Invites', style: Theme.of(context).textTheme.titleLarge),
+              //         const SizedBox(height: 12),
+              //         StreamBuilder<List<ClinicInvite>>(
+              //           stream: ClinicService.pendingInvitesStream(widget.clinicId),
+              //           builder: (context, snapshot) {
+              //             final invites = snapshot.data ?? [];
+              //             if (invites.isEmpty) {
+              //               return Text('No pending invites.', style: Theme.of(context).textTheme.bodyMedium);
+              //             }
+              //             return Column(
+              //               children: invites.map((inv) {
+              //                 return ListTile(
+              //                   contentPadding: EdgeInsets.zero,
+              //                   leading: Icon(inv.method == 'email' ? Icons.mail_outline : Icons.phone_iphone_outlined),
+              //                   title: Text(inv.contact),
+              //                   subtitle: Text(inv.role.label),
+              //                   trailing: IconButton(
+              //                     icon: const Icon(Icons.close, size: 18),
+              //                     onPressed: () => ClinicService.cancelInvite(widget.clinicId, inv.id),
+              //                   ),
+              //                 );
+              //               }).toList(),
+              //             );
+              //           },
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ],
             ],
           ),
         );

@@ -29,6 +29,25 @@ class NotificationService {
         .map((s) => s.docs.length);
   }
 
+  static Future<void> deleteNotification(String clinicId, String notifId) async {
+  await _db.collection('clinics').doc(clinicId).collection('notifications').doc(notifId).delete();
+}
+
+  static Future<void> clearAllRead(String clinicId) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final snapshot = await _db
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('notifications')
+        .where('userId', isEqualTo: uid)
+        .where('read', isEqualTo: true)
+        .get();
+    for (final doc in snapshot.docs) {
+      await doc.reference.delete();
+    }
+  }
+
   static Future<void> markRead(String clinicId, String notifId) async {
     await _db.collection('clinics').doc(clinicId).collection('notifications').doc(notifId).update({'read': true});
   }

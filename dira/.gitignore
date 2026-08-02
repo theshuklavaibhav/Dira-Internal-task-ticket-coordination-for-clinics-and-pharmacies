@@ -46,3 +46,7 @@ app.*.map.json
 
 # Keys
 .vscode/launch.json 
+
+build-release.ps1
+
+logcat.txt

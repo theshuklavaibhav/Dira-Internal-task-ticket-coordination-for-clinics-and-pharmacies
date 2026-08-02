@@ -56,10 +56,13 @@ service cloud.firestore {
       }
 
       match /notifications/{notifId} {
-        allow read, update: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow read, update: if request.auth != null &&
+        (resource.data.userId == request.auth.uid || isAdmin(clinicId));
         allow create: if isMember(clinicId);
-        allow delete: if isAdmin(clinicId);
+        allow delete: if request.auth != null &&
+        (resource.data.userId == request.auth.uid || isAdmin(clinicId));
       }
+
     }
   }
 }

@@ -44,109 +44,63 @@ class ClinicService {
     final myUid = FirebaseAuth.instance.currentUser?.uid;
     final clinicRef = _db.collection('clinics').doc(clinicId);
 
-    print('DEBUG: starting delete, myUid=$myUid');
-
     final membersSnap = await clinicRef.collection('members').get();
     for (final doc in membersSnap.docs) {
       if (doc.id != myUid) {
         await doc.reference.delete();
       }
     }
-    print('DEBUG: other members deleted');
 
     await _deleteAllDocs(clinicRef.collection('invites'));
-    print('DEBUG: invites deleted');
 
     await _deleteAllDocs(clinicRef.collection('notifications'));
-    print('DEBUG: notifications deleted');
 
     await _deleteAllDocs(clinicRef.collection('notices'));
-    print('DEBUG: notices deleted');
 
     final tickets = await clinicRef.collection('tickets').get();
     for (final ticketDoc in tickets.docs) {
       await _deleteAllDocs(ticketDoc.reference.collection('comments'));
       await ticketDoc.reference.delete();
     }
-    print('DEBUG: tickets deleted');
-
+    
     await clinicRef.delete();
-    print('DEBUG: clinic doc deleted');
+    
 
     if (myUid != null) {
       await clinicRef.collection('members').doc(myUid).delete();
     }
-    print('DEBUG: own membership deleted');
+    
 
     if (myUid != null) {
       await _db.collection('users').doc(myUid).update({
         'clinicIds': FieldValue.arrayRemove([clinicId]),
       });
     }
-    print('DEBUG: user doc cleaned up');
+    
   }
 
-  // static Future<void> deleteClinic(String clinicId) async {
-  //   final myUid = FirebaseAuth.instance.currentUser?.uid;
-  //   final clinicRef = _db.collection('clinics').doc(clinicId);
+  static Future<bool> isCurrentUserAdmin(String clinicId) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
 
-  //   // Delete every OTHER member first — keep our own membership doc intact
-  //   // for now, since it's needed to pass isAdmin() on the clinic doc's
-  //   // own delete a few steps down.
-  //   final membersSnap = await clinicRef.collection('members').get();
-  //   for (final doc in membersSnap.docs) {
-  //     if (doc.id != myUid) {
-  //       await doc.reference.delete();
-  //     }
-  //   }
+    final doc = await _db
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('members')
+        .doc(uid)
+        .get();
 
-  //   await _deleteAllDocs(clinicRef.collection('invites'));
-  //   await _deleteAllDocs(clinicRef.collection('notifications'));
-  //   await _deleteAllDocs(clinicRef.collection('notices'));
+    return doc.exists && doc['role'] == 'admin';
+  }
 
-  //   final tickets = await clinicRef.collection('tickets').get();
-  //   for (final ticketDoc in tickets.docs) {
-  //     await _deleteAllDocs(ticketDoc.reference.collection('comments'));
-  //     await ticketDoc.reference.delete();
-  //   }
-
-  //   // Delete the clinic document WHILE our own membership doc still exists —
-  //   // this is what lets isAdmin(clinicId) pass on this specific delete.
-  //   await clinicRef.delete();
-
-  //   // Only now delete our own membership doc — it's an orphaned subcollection
-  //   // entry at this point (Firestore doesn't cascade-delete), and the rule
-  //   // check for this delete still evaluates against its own pre-delete state.
-  //   if (myUid != null) {
-  //     await clinicRef.collection('members').doc(myUid).delete();
-  //   }
-
-  //   // Clean up the reference from our own user profile too.
-  //   if (myUid != null) {
-  //     await _db.collection('users').doc(myUid).update({
-  //       'clinicIds': FieldValue.arrayRemove([clinicId]),
-  //     });
-  //   }
-  // }
-
-  // static Future<void> ensureOwnerMembership(String clinicId) async {
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   if (user == null) return;
-
-  //   final clinicDoc = await _db.collection('clinics').doc(clinicId).get();
-  //   if (!clinicDoc.exists) return;
-  //   if (clinicDoc.data()?['ownerId'] != user.uid) return; // only self-heal for the actual owner
-
-  //   final memberDoc = await _db.collection('clinics').doc(clinicId).collection('members').doc(user.uid).get();
-  //   if (!memberDoc.exists) {
-  //     await _db.collection('clinics').doc(clinicId).collection('members').doc(user.uid).set({
-  //       'name': user.displayName ?? user.email,
-  //       'email': user.email,
-  //       'role': StaffRole.admin.name,
-  //       'status': 'active',
-  //     });
-  //   }
-  // }
+  static Future<List<ClinicMember>> getAdmins(String clinicId) async {
+    final snapshot = await _db
+      .collection('clinics')
+      .doc(clinicId)
+      .collection('members')
+      .where('role', isEqualTo: StaffRole.admin.name)
+      .get();
+    return snapshot.docs.map((d) => ClinicMember.fromFirestore(d.data(), d.id)).toList();
+  }
 
   static Future<void> ensureOwnerMembership(String clinicId) async {
     final user = FirebaseAuth.instance.currentUser;

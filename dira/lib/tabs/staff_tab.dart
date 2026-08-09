@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/clinic_service.dart';
+import '../screens/billing_screen.dart';
 
 class StaffTab extends StatefulWidget {
   final String clinicId;
@@ -34,11 +35,19 @@ class _StaffTabState extends State<StaffTab> {
     if (_method == 'email' && !contact.contains('@')) return;
     setState(() => _isSubmitting = true);
     try {
-      await ClinicService.inviteStaff(widget.clinicId, contact, _role, method: _method);
+      await ClinicService.inviteStaff(
+        widget.clinicId,
+        contact,
+        _role,
+        method: _method,
+      );
       _contactController.clear();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invite sent to $contact'), backgroundColor: Theme.of(context).colorScheme.primary),
+        SnackBar(
+          content: Text('Invite sent to $contact'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -65,7 +74,10 @@ class _StaffTabState extends State<StaffTab> {
                   'This permanently deletes "${widget.clinicName}" — all tickets, comments, notices, staff, and invites will be lost for everyone. This cannot be undone.',
                 ),
                 const SizedBox(height: 16),
-                Text('Type the clinic name to confirm:', style: Theme.of(dialogContext).textTheme.bodySmall),
+                Text(
+                  'Type the clinic name to confirm:',
+                  style: Theme.of(dialogContext).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: confirmController,
@@ -76,29 +88,44 @@ class _StaffTabState extends State<StaffTab> {
             ),
             actions: [
               TextButton(
-                onPressed: isDeleting ? null : () => Navigator.pop(dialogContext),
+                onPressed: isDeleting
+                    ? null
+                    : () => Navigator.pop(dialogContext),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: scheme.error),
-                onPressed: (isDeleting || confirmController.text.trim() != widget.clinicName)
+                onPressed:
+                    (isDeleting ||
+                        confirmController.text.trim() != widget.clinicName)
                     ? null
                     : () async {
                         setDialogState(() => isDeleting = true);
                         try {
                           await ClinicService.deleteClinic(widget.clinicId);
-                          if (dialogContext.mounted) Navigator.pop(dialogContext);
+                          if (dialogContext.mounted)
+                            Navigator.pop(dialogContext);
                           widget.onClinicDeleted();
                         } catch (e) {
                           setDialogState(() => isDeleting = false);
                           if (!dialogContext.mounted) return;
                           ScaffoldMessenger.of(dialogContext).showSnackBar(
-                            SnackBar(content: Text('Failed to delete: $e'), backgroundColor: scheme.error),
+                            SnackBar(
+                              content: Text('Failed to delete: $e'),
+                              backgroundColor: scheme.error,
+                            ),
                           );
                         }
                       },
                 child: isDeleting
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text('Delete Permanently'),
               ),
             ],
@@ -127,19 +154,32 @@ class _StaffTabState extends State<StaffTab> {
                   decoration: BoxDecoration(
                     color: scheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: scheme.outlineVariant.withOpacity(0.3)),
+                    border: Border.all(
+                      color: scheme.outlineVariant.withOpacity(0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Invite Staff', style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        'Invite Staff',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _contactController,
-                        keyboardType: _method == 'email' ? TextInputType.emailAddress : TextInputType.phone,
+                        keyboardType: _method == 'email'
+                            ? TextInputType.emailAddress
+                            : TextInputType.phone,
                         decoration: InputDecoration(
-                          labelText: _method == 'email' ? 'Staff Email' : 'Phone Number',
-                          prefixIcon: Icon(_method == 'email' ? Icons.email_outlined : Icons.phone_outlined),
+                          labelText: _method == 'email'
+                              ? 'Staff Email'
+                              : 'Phone Number',
+                          prefixIcon: Icon(
+                            _method == 'email'
+                                ? Icons.email_outlined
+                                : Icons.phone_outlined,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -148,14 +188,21 @@ class _StaffTabState extends State<StaffTab> {
                         decoration: const InputDecoration(labelText: 'Role'),
                         items: StaffRole.values
                             .where((r) => r != StaffRole.admin)
-                            .map((r) => DropdownMenuItem(value: r, child: Text(r.label)))
+                            .map(
+                              (r) => DropdownMenuItem(
+                                value: r,
+                                child: Text(r.label),
+                              ),
+                            )
                             .toList(),
                         onChanged: (v) => setState(() => _role = v!),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.send_outlined, size: 18),
-                        label: Text(_isSubmitting ? 'Sending...' : 'Send Invite'),
+                        label: Text(
+                          _isSubmitting ? 'Sending...' : 'Send Invite',
+                        ),
                         onPressed: _isSubmitting ? null : _sendInvite,
                       ),
                     ],
@@ -168,19 +215,27 @@ class _StaffTabState extends State<StaffTab> {
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: scheme.outlineVariant.withOpacity(0.3)),
+                  border: Border.all(
+                    color: scheme.outlineVariant.withOpacity(0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Active Members', style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      'Active Members',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 12),
                     StreamBuilder<List<ClinicMember>>(
                       stream: ClinicService.membersStream(widget.clinicId),
                       builder: (context, snapshot) {
                         final members = snapshot.data ?? [];
                         if (members.isEmpty) {
-                          return Text('No members yet.', style: Theme.of(context).textTheme.bodyMedium);
+                          return Text(
+                            'No members yet.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          );
                         }
                         return Column(
                           children: members.map((m) {
@@ -189,24 +244,51 @@ class _StaffTabState extends State<StaffTab> {
                               child: Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundColor: scheme.primaryContainer.withOpacity(0.2),
-                                    child: Text(m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
-                                        style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w600)),
+                                    backgroundColor: scheme.primaryContainer
+                                        .withOpacity(0.2),
+                                    child: Text(
+                                      m.name.isNotEmpty
+                                          ? m.name[0].toUpperCase()
+                                          : '?',
+                                      style: TextStyle(
+                                        color: scheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(m.name, style: Theme.of(context).textTheme.bodyLarge),
-                                        Text('${m.email} · ${m.role.label}', style: Theme.of(context).textTheme.bodySmall),
+                                        Text(
+                                          m.name,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge,
+                                        ),
+                                        Text(
+                                          '${m.email} · ${m.role.label}',
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
                                       ],
                                     ),
                                   ),
                                   if (isAdmin && m.role != StaffRole.admin)
                                     IconButton(
-                                      icon: Icon(Icons.remove_circle_outline, color: scheme.error, size: 20),
-                                      onPressed: () => ClinicService.removeMember(widget.clinicId, m.uid),
+                                      icon: Icon(
+                                        Icons.remove_circle_outline,
+                                        color: scheme.error,
+                                        size: 20,
+                                      ),
+                                      onPressed: () =>
+                                          ClinicService.removeMember(
+                                            widget.clinicId,
+                                            m.uid,
+                                          ),
                                     ),
                                 ],
                               ),
@@ -219,6 +301,23 @@ class _StaffTabState extends State<StaffTab> {
                 ),
               ),
               if (isAdmin) ...[
+                ListTile(
+                        leading: Icon(
+                          Icons.workspace_premium_outlined,
+                          color: scheme.primary,
+                        ),
+                        title: const Text('Manage Subscription'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BillingScreen(
+                              clinicId: widget.clinicId,
+                              clinicName: widget.clinicName,
+                            ),
+                          ),
+                        ),
+                      ),
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -232,66 +331,44 @@ class _StaffTabState extends State<StaffTab> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded, color: scheme.error, size: 20),
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: scheme.error,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
-                          Text('Danger Zone', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: scheme.error)),
+                          Text(
+                            'Danger Zone',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(color: scheme.error),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text('Permanently delete this clinic and all of its data. This cannot be undone.',
-                          style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        'Permanently delete this clinic and all of its data. This cannot be undone.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       const SizedBox(height: 14),
                       OutlinedButton.icon(
-                        icon: Icon(Icons.delete_forever, color: scheme.error, size: 18),
-                        label: Text('Delete Clinic', style: TextStyle(color: scheme.error)),
+                        icon: Icon(
+                          Icons.delete_forever,
+                          color: scheme.error,
+                          size: 18,
+                        ),
+                        label: Text(
+                          'Delete Clinic',
+                          style: TextStyle(color: scheme.error),
+                        ),
                         onPressed: _confirmDeleteClinic,
-                        style: OutlinedButton.styleFrom(side: BorderSide(color: scheme.error)),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: scheme.error),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
-              // if (isAdmin) ...[
-              //   const SizedBox(height: 16),
-              //   Container(
-              //     padding: const EdgeInsets.all(20),
-              //     decoration: BoxDecoration(
-              //       color: scheme.surfaceContainerLowest,
-              //       borderRadius: BorderRadius.circular(16),
-              //       border: Border.all(color: scheme.outlineVariant.withOpacity(0.3)),
-              //     ),
-              //     child: Column(
-              //       crossAxisAlignment: CrossAxisAlignment.stretch,
-              //       children: [
-              //         Text('Pending Invites', style: Theme.of(context).textTheme.titleLarge),
-              //         const SizedBox(height: 12),
-              //         StreamBuilder<List<ClinicInvite>>(
-              //           stream: ClinicService.pendingInvitesStream(widget.clinicId),
-              //           builder: (context, snapshot) {
-              //             final invites = snapshot.data ?? [];
-              //             if (invites.isEmpty) {
-              //               return Text('No pending invites.', style: Theme.of(context).textTheme.bodyMedium);
-              //             }
-              //             return Column(
-              //               children: invites.map((inv) {
-              //                 return ListTile(
-              //                   contentPadding: EdgeInsets.zero,
-              //                   leading: Icon(inv.method == 'email' ? Icons.mail_outline : Icons.phone_iphone_outlined),
-              //                   title: Text(inv.contact),
-              //                   subtitle: Text(inv.role.label),
-              //                   trailing: IconButton(
-              //                     icon: const Icon(Icons.close, size: 18),
-              //                     onPressed: () => ClinicService.cancelInvite(widget.clinicId, inv.id),
-              //                   ),
-              //                 );
-              //               }).toList(),
-              //             );
-              //           },
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ],
             ],
           ),
         );

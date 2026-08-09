@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../services/notification_service.dart';
+import '../services/onesignal_notification_service.dart'; // use your actual filename
 
 /// A clinic-wide announcement. Kept intentionally simple — title, body,
 /// priority, author, and a pin/view count for the Notice Board feed.
@@ -72,7 +74,12 @@ class NoticeBoardService {
     required String authorRole,
   }) async {
     final user = FirebaseAuth.instance.currentUser!;
-    await _db.collection('clinics').doc(clinicId).collection('notices').add({
+
+    final noticeRef = await _db
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('notices')
+        .add({
       'title': title,
       'body': body,
       'priority': priority,
@@ -82,6 +89,42 @@ class NoticeBoardService {
       'pinned': false,
       'createdAt': FieldValue.serverTimestamp(),
     });
+
+    // Notify every clinic member
+    final members = await _db
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('members')
+        .get();
+
+    for (final member in members.docs) {
+      final uid = member.id;
+
+      await _db
+          .collection('clinics')
+          .doc(clinicId)
+          .collection('notifications')
+          .add({
+        'userId': uid,
+        'title': '📢 New Notice',
+        'message': title,
+        'type': 'notice',
+        'noticeId': noticeRef.id,
+        'read': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      await OneSignalPushService.sendToUser(
+        externalUserId: uid,
+        title: '📢 New Notice',
+        message: title,
+        data: {
+          'type': 'notice',
+          'noticeId': noticeRef.id,
+          'clinicId': clinicId,
+        },
+      );
+    }
   }
 
   static Future<void> togglePin(String clinicId, String noticeId, bool pinned) async {
@@ -236,13 +279,48 @@ class _NoticeCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(_timeAgo(notice.createdAt), style: Theme.of(context).textTheme.bodySmall),
                     const Spacer(),
+                    // IconButton(
+                    //   icon: Icon(
+                    //     notice.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                    //     size: 20,
+                    //     color: notice.pinned ? scheme.secondary : scheme.onSurfaceVariant,
+                    //   ),
+                    //   onPressed: () => NoticeBoardService.togglePin(clinicId, notice.id, notice.pinned),
+                    // ),
                     IconButton(
                       icon: Icon(
-                        notice.pinned ? Icons.push_pin : Icons.push_pin_outlined,
-                        size: 20,
-                        color: notice.pinned ? scheme.secondary : scheme.onSurfaceVariant,
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error,
                       ),
-                      onPressed: () => NoticeBoardService.togglePin(clinicId, notice.id, notice.pinned),
+                      onPressed: () async {
+
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Delete Notice"),
+                            content: const Text(
+                              "Are you sure you want to permanently delete this notice?",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("Cancel"),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          await NoticeBoardService.deleteNotice(
+                            clinicId,
+                            notice.id,
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),

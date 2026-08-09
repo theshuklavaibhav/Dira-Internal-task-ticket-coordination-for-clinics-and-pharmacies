@@ -1,0 +1,8 @@
+name = "dira-worker"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+ONESIGNAL_APP_ID = "a0829472-f917-4c4c-90a2-d2a7c975b423"
+FIREBASE_PROJECT_ID = "dira-clinicops"
+PUBLIC_API_URL = "https://api.example.com"

@@ -1,129 +1,3 @@
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:flutter/material.dart';
-
-// import 'firebase_options.dart';
-// import 'services/clinic_service.dart';
-// import 'screens/login_screen.dart';
-// import 'screens/clinic_list_screen.dart';
-// import 'theme/app_theme.dart';
-
-// import 'package:onesignal_flutter/onesignal_flutter.dart';
-
-// import 'screens/main_shell_screen.dart';
-
-// // void main() async {
-// //   WidgetsFlutterBinding.ensureInitialized();
-// //   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-// //   OneSignal.initialize('a0829472-f917-4c4c-90a2-d2a7c975b423');
-// //   await OneSignal.Notifications.requestPermission(true);
-// //   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-// //   OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-// //   runApp(const Dira());
-// // }
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-
-//   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-//   OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-
-//   OneSignal.initialize('a0829472-f917-4c4c-90a2-d2a7c975b423');
-
-//   OneSignal.User.pushSubscription.addObserver((state) {
-//   debugPrint("========== PUSH SUBSCRIPTION ==========");
-//   debugPrint(state.current.jsonRepresentation().toString());
-// });
-
-// OneSignal.Notifications.addPermissionObserver((granted) {
-//   debugPrint("Permission changed: $granted");
-// });
-
-//   final accepted =
-//       await OneSignal.Notifications.requestPermission(true);
-
-//   debugPrint("Permission accepted = $accepted");
-
-//   runApp(const Dira());
-// }
-
-// const Color primaryColor = Color.fromARGB(255, 67, 133, 255);
-// const Color secondaryColor = Color.fromARGB(255, 67, 214, 255);
-
-// class Dira extends StatelessWidget {
-//   const Dira({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//         debugShowCheckedModeBanner: false,
-//         title: 'Dira',
-//         theme: AppTheme.light,
-//         darkTheme: AppTheme.dark,
-//         themeMode: ThemeMode.system,
-//         home: const AuthGate(),
-//     );
-//   }
-// }
-
-// class AuthGate extends StatefulWidget {
-//   const AuthGate({super.key});
-//   @override
-//   State<AuthGate> createState() => _AuthGateState();
-// }
-
-// class _AuthGateState extends State<AuthGate> {
-//   String? _processedUid;
-
-//   Future<void> _setupOneSignal(User user) async {
-//     await OneSignal.login(user.uid);
-
-//     debugPrint(
-//         "Subscription ID: ${OneSignal.User.pushSubscription.id}");
-
-//     debugPrint(
-//         "Push Token: ${OneSignal.User.pushSubscription.token}");
-
-//     debugPrint(
-//         "Opted In: ${OneSignal.User.pushSubscription.optedIn}");
-    
-//     debugPrint(
-//       "Permission = ${OneSignal.Notifications.permission}");
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return StreamBuilder<User?>(
-//       stream: FirebaseAuth.instance.authStateChanges(),
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return const Scaffold(body: Center(child: CircularProgressIndicator()));
-//         }
-//         final user = snapshot.data;
-//         if (user == null) {
-//           _processedUid = null;
-//           return const LoginScreen();
-//         }
-//         if (_processedUid != user.uid) {
-//           _processedUid = user.uid;
-//           ClinicService.ensureUserDoc();
-//           ClinicService.acceptPendingInvites();
-//           // OneSignal.login(user.uid); // links this device to the signed-in user
-//            WidgetsBinding.instance.addPostFrameCallback((_) {
-//               _setupOneSignal(user);
-//            });
-//         }
-//         // return const ClinicListScreen();
-//         return const MainShellScreen();
-//       },
-//     );
-//   }
-// }
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -137,112 +11,10 @@ import 'screens/main_shell_screen.dart';
 import 'services/clinic_service.dart';
 import 'theme/app_theme.dart';
 
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
+import 'widgets/offline_banner.dart';
+import './screens/onboarding_screen.dart' ;
 
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-
-//   final token = await FirebaseMessaging.instance.getToken();
-
-//   debugPrint("========== FIREBASE ==========");
-//   debugPrint("FCM TOKEN = $token");
-//   debugPrint("==============================");
-//   // Enable OneSignal Debug Logs
-//   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-//   OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-
-//   // Initialize OneSignal
-//   OneSignal.initialize("a0829472-f917-4c4c-90a2-d2a7c975b423");
-//   // Observe permission changes
-//   OneSignal.Notifications.addPermissionObserver((granted) {
-//     debugPrint("🔔 Permission changed: $granted");
-//   });
-
-//   // Observe subscription changes
-//   OneSignal.User.pushSubscription.addObserver((state) {
-//     debugPrint("========== PUSH SUBSCRIPTION ==========");
-//     debugPrint(state.current.jsonRepresentation().toString());
-//   });
-
-//   // Request notification permission
-//   final accepted =
-//       await OneSignal.Notifications.requestPermission(true);
-
-//   debugPrint("Permission accepted: $accepted");
-
-//   runApp(const Dira());
-// }
-
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-
-//   try {
-//     // Initialize Firebase
-//     await Firebase.initializeApp(
-//       options: DefaultFirebaseOptions.currentPlatform,
-//     );
-
-//     debugPrint("✅ Firebase initialized");
-
-//     // Test FCM token
-//     try {
-//       final token = await FirebaseMessaging.instance.getToken();
-
-//       debugPrint("========== FIREBASE ==========");
-//       debugPrint("FCM TOKEN = $token");
-//       debugPrint("==============================");
-//     } catch (e) {
-//       debugPrint("❌ Failed to get FCM Token");
-//       debugPrint(e.toString());
-//     }
-
-//     // Enable OneSignal Logs
-//     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-//     OneSignal.Debug.setAlertLevel(OSLogLevel.none);
-
-//     // Initialize OneSignal
-//     OneSignal.initialize("a0829472-f917-4c4c-90a2-d2a7c975b423");
-
-//     // Permission Observer
-//     OneSignal.Notifications.addPermissionObserver((granted) {
-//       debugPrint("🔔 Permission changed: $granted");
-//     });
-
-//     // Push Subscription Observer
-//     OneSignal.User.pushSubscription.addObserver((state) {
-//       debugPrint("========== PUSH SUBSCRIPTION ==========");
-//       debugPrint(state.current.jsonRepresentation().toString());
-//     });
-
-//     // Request notification permission
-//     final accepted =
-//         await OneSignal.Notifications.requestPermission(true);
-
-//     debugPrint("Permission accepted: $accepted");
-
-//     runApp(const Dira());
-//   } catch (e, stackTrace) {
-//     debugPrint("❌ APP STARTUP FAILED");
-//     debugPrint(e.toString());
-//     debugPrint(stackTrace.toString());
-
-//     runApp(
-//       MaterialApp(
-//         home: Scaffold(
-//           body: Center(
-//             child: Text(
-//               "Startup Error\n\n$e",
-//               textAlign: TextAlign.center,
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -345,7 +117,30 @@ class Dira extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const AuthGate(),
+      home: const OfflineBanner(child: RootDecider()),
+      
+    );
+  }
+}
+
+class RootDecider extends StatelessWidget {
+  const RootDecider({super.key});
+
+  Future<bool> _hasSeenOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('onboarding_seen') ?? false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _hasSeenOnboarding(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        return snapshot.data! ? const AuthGate() : const OnboardingScreen();
+      },
     );
   }
 }
@@ -379,38 +174,6 @@ class _AuthGateState extends State<AuthGate> {
       _initializeUser(user);
     });
   }
-
-  // Future<void> _initializeUser(User user) async {
-  //   try {
-  //     // Your existing setup
-  //     await ClinicService.ensureUserDoc();
-  //     await ClinicService.acceptPendingInvites();
-
-  //     // Login user to OneSignal
-  //     await OneSignal.login(user.uid);
-
-  //     debugPrint("========== ONESIGNAL STATUS ==========");
-
-  //     debugPrint(
-  //         "Subscription ID : ${OneSignal.User.pushSubscription.id}");
-
-  //     debugPrint(
-  //         "Push Token      : ${OneSignal.User.pushSubscription.token}");
-
-  //     debugPrint(
-  //         "Opted In        : ${OneSignal.User.pushSubscription.optedIn}");
-
-  //     debugPrint(
-  //         "Permission      : ${OneSignal.Notifications.permission}");
-
-
-  //     debugPrint("======================================");
-  //   } catch (e, stackTrace) {
-  //     debugPrint("OneSignal setup failed");
-  //     debugPrint(e.toString());
-  //     debugPrint(stackTrace.toString());
-  //   }
-  // }
 
   Future<void> _initializeUser(User user) async {
   try {

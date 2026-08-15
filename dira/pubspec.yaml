@@ -43,27 +43,42 @@ dependencies:
   firebase_messaging: ^15.2.10
   image_picker: ^1.2.3
   razorpay_flutter: ^1.4.5
+  connectivity_plus: ^7.3.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.8
+  flutter_lints: ^6.0.0
 
 flutter_launcher_icons:
   android: true # Changed to boolean true for proper default naming
   ios: true
-  image_path: "assets/icon/app_icon.png" # Updated to standard underscore naming
+  image_path: "assets/icon/app-icon.png" # Updated to standard underscore naming
   min_sdk_android: 21
   remove_alpha_ios: true
 
-  adaptive_icon_background: "#FFFFFF" # or your brand color hex code
-  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#3525CD" # or your brand color hex code
+  adaptive_icon_foreground: "assets/icon/dira_foreground_flat.png"
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^6.0.0
+  
+
+flutter_native_splash:
+  color: "#F8F9FF"
+  image: "assets/icon/app-icon.png"
+  color_dark: "#0B1C30"
+  image_dark: "assets/icon/app-icon.png"
+  android_12:
+    image: "assets/icon/app-icon.png"
+    icon_background_color: "#F8F9FF"
+    image_dark: "assets/icon/app-icon.png"
+    icon_background_color_dark: "#0B1C30"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -78,6 +93,7 @@ flutter:
   # Registering the assets directory:
   assets:
     - assets/icon/app-icon.png
+    - assets/icon/dira_foreground_flat.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
